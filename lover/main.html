@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Падаючі сердечка</title>
+    <title>Сердечка та Любов</title>
     <style>
         body {
             margin: 0;
@@ -16,21 +16,10 @@
             top: 0;
             left: 0;
         }
-        .message {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 50px;
-            color: white;
-            font-family: Arial, sans-serif;
-            display: none;
-        }
     </style>
 </head>
 <body>
     <canvas id="canvas"></canvas>
-    <div class="message">Я тебе люблю!</div>
     <script>
         const canvas = document.getElementById("canvas");
         const ctx = canvas.getContext("2d");
@@ -39,12 +28,13 @@
         canvas.height = window.innerHeight;
 
         class Heart {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height - canvas.height;
-                this.size = Math.random() * 20 + 10;
-                this.speedY = Math.random() * 2 + 1;
-                this.opacity = Math.random() * 0.5 + 0.5;
+            constructor(x, y, size, speedX, speedY) {
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                this.opacity = 1;
             }
 
             draw() {
@@ -52,12 +42,38 @@
                 ctx.fillStyle = "red";
                 ctx.beginPath();
                 ctx.moveTo(this.x, this.y);
-                ctx.arc(this.x - this.size / 2, this.y, this.size / 2, Math.PI, 0, false);
-                ctx.arc(this.x + this.size / 2, this.y, this.size / 2, Math.PI, 0, false);
-                ctx.lineTo(this.x, this.y + this.size);
+                ctx.arc(this.x - this.size / 2, this.y - this.size / 2, this.size / 2, Math.PI, 0, false);
+                ctx.arc(this.x + this.size / 2, this.y - this.size / 2, this.size / 2, Math.PI, 0, false);
+                ctx.lineTo(this.x, this.y + this.size / 2);
                 ctx.closePath();
                 ctx.fill();
                 ctx.globalAlpha = 1;
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.opacity -= 0.02;
+            }
+        }
+
+        class FallingHeart {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 20 + 10;
+                this.speedY = Math.random() * 2 + 1;
+            }
+
+            draw() {
+                ctx.fillStyle = "red";
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.arc(this.x - this.size / 2, this.y - this.size / 2, this.size / 2, Math.PI, 0, false);
+                ctx.arc(this.x + this.size / 2, this.y - this.size / 2, this.size / 2, Math.PI, 0, false);
+                ctx.lineTo(this.x, this.y + this.size / 2);
+                ctx.closePath();
+                ctx.fill();
             }
 
             update() {
@@ -70,23 +86,50 @@
         }
 
         const hearts = [];
+        const fallingHearts = [];
+
         for (let i = 0; i < 50; i++) {
-            hearts.push(new Heart());
+            fallingHearts.push(new FallingHeart());
         }
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            hearts.forEach(heart => {
+
+            fallingHearts.forEach(heart => {
                 heart.update();
                 heart.draw();
             });
+
+            hearts.forEach((heart, index) => {
+                heart.update();
+                heart.draw();
+                if (heart.opacity <= 0) {
+                    hearts.splice(index, 1);
+                }
+            });
+
             requestAnimationFrame(animate);
         }
 
         animate();
 
-        document.addEventListener("click", () => {
-            document.querySelector(".message").style.display = "block";
+        canvas.addEventListener("click", (event) => {
+            const { clientX: x, clientY: y } = event;
+            
+            ctx.font = "40px Arial";
+            ctx.fillStyle = "white";
+            ctx.textAlign = "center";
+            ctx.fillText("Я тебе люблю!", x, y);
+
+            setTimeout(() => {
+                ctx.clearRect(x - 100, y - 50, 200, 100);
+            }, 2000);
+
+            for (let i = 0; i < 15; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const speed = Math.random() * 3 + 2;
+                hearts.push(new Heart(x, y, Math.random() * 15 + 10, speed * Math.cos(angle), speed * Math.sin(angle)));
+            }
         });
 
         window.addEventListener("resize", () => {
