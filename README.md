@@ -1,4 +1,3 @@
-# love
 <!DOCTYPE html>
 <html lang="uk">
 <head>
